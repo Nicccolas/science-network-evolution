@@ -1,0 +1,264 @@
+{
+  "retrieved_at_utc": "2026-09-29T19:40:15.925092+00:00",
+  "request_url": "https://api.openalex.org/works?filter=openalex_id%3Ahttps%3A%2F%2Fopenalex.org%2FW4403457221%7Chttps%3A%2F%2Fopenalex.org%2FW4400370861%7Chttps%3A%2F%2Fopenalex.org%2FW4395956605%7Chttps%3A%2F%2Fopenalex.org%2FW4399899166%7Chttps%3A%2F%2Fopenalex.org%2FW4405583548%7Chttps%3A%2F%2Fopenalex.org%2FW7111840021%7Chttps%3A%2F%2Fopenalex.org%2FW4402235505%7Chttps%3A%2F%2Fopenalex.org%2FW4394680554%7Chttps%3A%2F%2Fopenalex.org%2FW4403466322%7Chttps%3A%2F%2Fopenalex.org%2FW4401148814%7Chttps%3A%2F%2Fopenalex.org%2FW4392243018%7Chttps%3A%2F%2Fopenalex.org%2FW4402992866%7Chttps%3A%2F%2Fopenalex.org%2FW4391972403%7Chttps%3A%2F%2Fopenalex.org%2FW4394979626%7Chttps%3A%2F%2Fopenalex.org%2FW4402837604%7Chttps%3A%2F%2Fopenalex.org%2FW4390675482%7Chttps%3A%2F%2Fopenalex.org%2FW4400642888%7Chttps%3A%2F%2Fopenalex.org%2FW4406283004%7Chttps%3A%2F%2Fopenalex.org%2FW4401085046%7Chttps%3A%2F%2Fopenalex.org%2FW4400147466%7Chttps%3A%2F%2Fopenalex.org%2FW4396229734%7Chttps%3A%2F%2Fopenalex.org%2FW4392453897%7Chttps%3A%2F%2Fopenalex.org%2FW4402452064%7Chttps%3A%2F%2Fopenalex.org%2FW4401819097%7Chttps%3A%2F%2Fopenalex.org%2FW4401189201%7Chttps%3A%2F%2Fopenalex.org%2FW4399670476%7Chttps%3A%2F%2Fopenalex.org%2FW4391620186%7Chttps%3A%2F%2Fopenalex.org%2FW4402573841%7Chttps%3A%2F%2Fopenalex.org%2FW4394684333%7Chttps%3A%2F%2Fopenalex.org%2FW4403225039%7Chttps%3A%2F%2Fopenalex.org%2FW4402312903%7Chttps%3A%2F%2Fopenalex.org%2FW4396979465%7Chttps%3A%2F%2Fopenalex.org%2FW4392911937%7Chttps%3A%2F%2Fopenalex.org%2FW4401328945%7Chttps%3A%2F%2Fopenalex.org%2FW7153700404%7Chttps%3A%2F%2Fopenalex.org%2FW4402619879%7Chttps%3A%2F%2Fopenalex.org%2FW4400962354%7Chttps%3A%2F%2Fopenalex.org%2FW4392183287%7Chttps%3A%2F%2Fopenalex.org%2FW4405016781%7Chttps%3A%2F%2Fopenalex.org%2FW4402991519%7Chttps%3A%2F%2Fopenalex.org%2FW7126508690%7Chttps%3A%2F%2Fopenalex.org%2FW4403877218%7Chttps%3A%2F%2Fopenalex.org%2FW4393944492%7Chttps%3A%2F%2Fopenalex.org%2FW4400406988%7Chttps%3A%2F%2Fopenalex.org%2FW4400386523%7Chttps%3A%2F%2Fopenalex.org%2FW4392698035%7Chttps%3A%2F%2Fopenalex.org%2FW4402289652%7Chttps%3A%2F%2Fopenalex.org%2FW4399362099%7Chttps%3A%2F%2Fopenalex.org%2FW4404435150%7Chttps%3A%2F%2Fopenalex.org%2FW4402895056&per_page=100&select=id%2Cdoi%2Ctitle%2Cpublication_year%2Cpublication_date%2Ctype%2Clanguage%2Ccited_by_count%2Copen_access%2Cprimary_location%2Cprimary_topic%2Cauthorships%2Creferenced_works",
+  "parameters": {
+    "filter": "openalex_id:https://openalex.org/W4403457221|https://openalex.org/W4400370861|https://openalex.org/W4395956605|https://openalex.org/W4399899166|https://openalex.org/W4405583548|https://openalex.org/W7111840021|https://openalex.org/W4402235505|https://openalex.org/W4394680554|https://openalex.org/W4403466322|https://openalex.org/W4401148814|https://openalex.org/W4392243018|https://openalex.org/W4402992866|https://openalex.org/W4391972403|https://openalex.org/W4394979626|https://openalex.org/W4402837604|https://openalex.org/W4390675482|https://openalex.org/W4400642888|https://openalex.org/W4406283004|https://openalex.org/W4401085046|https://openalex.org/W4400147466|https://openalex.org/W4396229734|https://openalex.org/W4392453897|https://openalex.org/W4402452064|https://openalex.org/W4401819097|https://openalex.org/W4401189201|https://openalex.org/W4399670476|https://openalex.org/W4391620186|https://openalex.org/W4402573841|https://openalex.org/W4394684333|https://openalex.org/W4403225039|https://openalex.org/W4402312903|https://openalex.org/W4396979465|https://openalex.org/W4392911937|https://openalex.org/W4401328945|https://openalex.org/W7153700404|https://openalex.org/W4402619879|https://openalex.org/W4400962354|https://openalex.org/W4392183287|https://openalex.org/W4405016781|https://openalex.org/W4402991519|https://openalex.org/W7126508690|https://openalex.org/W4403877218|https://openalex.org/W4393944492|https://openalex.org/W4400406988|https://openalex.org/W4400386523|https://openalex.org/W4392698035|https://openalex.org/W4402289652|https://openalex.org/W4399362099|https://openalex.org/W4404435150|https://openalex.org/W4402895056",
+    "per_page": 100,
+    "select": "id,doi,title,publication_year,publication_date,type,language,cited_by_count,open_access,primary_location,primary_topic,authorships,referenced_works"
+  },
+  "corpus": "OpenAlex default (core)",
+  "requested_rows": 50,
+  "returned_rows": 50,
+  "refresh_existing": true,
+  "citation_network": {
+    "nodes": 1742,
+    "edges": 1694,
+    "direction": "citing work -> cited work",
+    "sampled_works_with_references": 34,
+    "edges_within_sample": 1,
+    "scope": "Outgoing references of sampled works only; external nodes have no fetched metadata or outgoing references."
+  },
+  "unique_work_ids": 50,
+  "api_meta": {
+    "count": 50,
+    "db_response_time_ms": 63,
+    "page": 1,
+    "per_page": 100,
+    "groups_count": null,
+    "x_query": {
+      "oql": "works where openalex id is (\n    https://openalex.org/W4390675482 or https://openalex.org/W4391620186\n    or https://openalex.org/W4391972403 or https://openalex.org/W4392183287\n    or https://openalex.org/W4392243018 or https://openalex.org/W4392453897\n    or https://openalex.org/W4392698035 or https://openalex.org/W4392911937\n    or https://openalex.org/W4393944492 or https://openalex.org/W4394680554\n    or https://openalex.org/W4394684333 or https://openalex.org/W4394979626\n    or https://openalex.org/W4395956605 or https://openalex.org/W4396229734\n    or https://openalex.org/W4396979465 or https://openalex.org/W4399362099\n    or https://openalex.org/W4399670476 or https://openalex.org/W4399899166\n    or https://openalex.org/W4400147466 or https://openalex.org/W4400370861\n    or https://openalex.org/W4400386523 or https://openalex.org/W4400406988\n    or https://openalex.org/W4400642888 or https://openalex.org/W4400962354\n    or https://openalex.org/W4401085046 or https://openalex.org/W4401148814\n    or https://openalex.org/W4401189201 or https://openalex.org/W4401328945\n    or https://openalex.org/W4401819097 or https://openalex.org/W4402235505\n    or https://openalex.org/W4402289652 or https://openalex.org/W4402312903\n    or https://openalex.org/W4402452064 or https://openalex.org/W4402573841\n    or https://openalex.org/W4402619879 or https://openalex.org/W4402837604\n    or https://openalex.org/W4402895056 or https://openalex.org/W4402991519\n    or https://openalex.org/W4402992866 or https://openalex.org/W4403225039\n    or https://openalex.org/W4403457221 or https://openalex.org/W4403466322\n    or https://openalex.org/W4403877218 or https://openalex.org/W4404435150\n    or https://openalex.org/W4405016781 or https://openalex.org/W4405583548\n    or https://openalex.org/W4406283004 or https://openalex.org/W7111840021\n    or https://openalex.org/W7126508690 or https://openalex.org/W7153700404\n  )",
+      "oqo": {
+        "get_rows": "works",
+        "filter_rows": [
+          {
+            "join": "or",
+            "filters": [
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4390675482"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4391620186"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4391972403"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4392183287"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4392243018"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4392453897"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4392698035"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4392911937"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4393944492"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4394680554"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4394684333"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4394979626"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4395956605"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4396229734"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4396979465"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4399362099"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4399670476"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4399899166"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4400147466"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4400370861"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4400386523"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4400406988"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4400642888"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4400962354"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4401085046"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4401148814"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4401189201"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4401328945"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4401819097"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4402235505"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4402289652"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4402312903"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4402452064"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4402573841"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4402619879"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4402837604"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4402895056"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4402991519"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4402992866"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4403225039"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4403457221"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4403466322"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4403877218"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4404435150"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4405016781"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4405583548"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W4406283004"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W7111840021"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W7126508690"
+              },
+              {
+                "column_id": "ids.openalex",
+                "value": "https://openalex.org/W7153700404"
+              }
+            ]
+          }
+        ]
+      },
+      "url": "/works?filter=ids.openalex:https:%2F%2Fopenalex.org%2FW4390675482|https:%2F%2Fopenalex.org%2FW4391620186|https:%2F%2Fopenalex.org%2FW4391972403|https:%2F%2Fopenalex.org%2FW4392183287|https:%2F%2Fopenalex.org%2FW4392243018|https:%2F%2Fopenalex.org%2FW4392453897|https:%2F%2Fopenalex.org%2FW4392698035|https:%2F%2Fopenalex.org%2FW4392911937|https:%2F%2Fopenalex.org%2FW4393944492|https:%2F%2Fopenalex.org%2FW4394680554|https:%2F%2Fopenalex.org%2FW4394684333|https:%2F%2Fopenalex.org%2FW4394979626|https:%2F%2Fopenalex.org%2FW4395956605|https:%2F%2Fopenalex.org%2FW4396229734|https:%2F%2Fopenalex.org%2FW4396979465|https:%2F%2Fopenalex.org%2FW4399362099|https:%2F%2Fopenalex.org%2FW4399670476|https:%2F%2Fopenalex.org%2FW4399899166|https:%2F%2Fopenalex.org%2FW4400147466|https:%2F%2Fopenalex.org%2FW4400370861|https:%2F%2Fopenalex.org%2FW4400386523|https:%2F%2Fopenalex.org%2FW4400406988|https:%2F%2Fopenalex.org%2FW4400642888|https:%2F%2Fopenalex.org%2FW4400962354|https:%2F%2Fopenalex.org%2FW4401085046|https:%2F%2Fopenalex.org%2FW4401148814|https:%2F%2Fopenalex.org%2FW4401189201|https:%2F%2Fopenalex.org%2FW4401328945|https:%2F%2Fopenalex.org%2FW4401819097|https:%2F%2Fopenalex.org%2FW4402235505|https:%2F%2Fopenalex.org%2FW4402289652|https:%2F%2Fopenalex.org%2FW4402312903|https:%2F%2Fopenalex.org%2FW4402452064|https:%2F%2Fopenalex.org%2FW4402573841|https:%2F%2Fopenalex.org%2FW4402619879|https:%2F%2Fopenalex.org%2FW4402837604|https:%2F%2Fopenalex.org%2FW4402895056|https:%2F%2Fopenalex.org%2FW4402991519|https:%2F%2Fopenalex.org%2FW4402992866|https:%2F%2Fopenalex.org%2FW4403225039|https:%2F%2Fopenalex.org%2FW4403457221|https:%2F%2Fopenalex.org%2FW4403466322|https:%2F%2Fopenalex.org%2FW4403877218|https:%2F%2Fopenalex.org%2FW4404435150|https:%2F%2Fopenalex.org%2FW4405016781|https:%2F%2Fopenalex.org%2FW4405583548|https:%2F%2Fopenalex.org%2FW4406283004|https:%2F%2Fopenalex.org%2FW7111840021|https:%2F%2Fopenalex.org%2FW7126508690|https:%2F%2Fopenalex.org%2FW7153700404&per_page=100"
+    },
+    "cost_usd": 0.0001
+  },
+  "missing_values_by_column": {
+    "openalex_id": 0,
+    "doi": 3,
+    "title": 0,
+    "publication_year": 0,
+    "publication_date": 0,
+    "type": 0,
+    "language": 1,
+    "cited_by_count": 0,
+    "referenced_works_count": 0,
+    "referenced_works": 16,
+    "is_oa": 0,
+    "oa_status": 0,
+    "oa_url": 18,
+    "source_name": 0,
+    "primary_topic": 0,
+    "primary_topic_id": 0,
+    "authors": 1,
+    "author_ids": 1
+  }
+}
