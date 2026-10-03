@@ -29,6 +29,13 @@ def fetch(url):
             time.sleep(2 ** attempt)
     raise RuntimeError("OpenAlex request failed after five attempts; check network or API budget.")
 
+def reconstruct_abstract(index):
+    if not index:
+        return None
+    words = [(position, word)
+             for word, positions in index.items()
+             for position in positions]
+    return " ".join(word for _, word in sorted(words))
 
 def flatten(work):
     source = (work.get("primary_location") or {}).get("source") or {}
@@ -39,6 +46,7 @@ def flatten(work):
         "openalex_id": work["id"],
         "doi": work.get("doi"),
         "title": work.get("title"),
+        "abstract": reconstruct_abstract(work.get("abstract_inverted_index")),
         "publication_year": work.get("publication_year"),
         "publication_date": work.get("publication_date"),
         "type": work.get("type"),
@@ -69,9 +77,9 @@ def main():
     if not 1 <= args.size <= 100:
         parser.error("--size must be between 1 and 100 for this single-request MVP")
     params = {
-        "filter": f"publication_year:{args.year},type:article",
+        "filter": f"publication_year:{args.year},type:article,language:en",
         "sample": args.size, "seed": args.seed, "per_page": args.size,
-        "select": "id,doi,title,publication_year,publication_date,type,language,cited_by_count,open_access,primary_location,primary_topic,authorships,referenced_works",
+        "select": "id,doi,title,abstract_inverted_index,publication_year,publication_date,type,language,cited_by_count,open_access,primary_location,primary_topic,authorships,referenced_works",
     }
     if args.search:
         params["search"] = args.search
@@ -98,6 +106,8 @@ def main():
         payload["results"] = works
     elif any(w.get("publication_year") != args.year or w.get("type") != "article" for w in works):
         raise RuntimeError("API returned works outside the requested filters")
+    if any(w.get("language") != "en" for w in works):
+        raise RuntimeError("API returned non-English works; saved files were not changed")
     if any(not isinstance(w.get("referenced_works"), list) for w in works):
         raise RuntimeError("API did not return reference lists; saved files were not changed")
     rows = [flatten(w) for w in works]
