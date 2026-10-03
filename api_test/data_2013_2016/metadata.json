@@ -1,0 +1,95 @@
+{
+  "retrieved_at_utc": "2026-10-03T22:19:25.394184+00:00",
+  "parameters": {
+    "min_year": 2013,
+    "max_year": 2016,
+    "size": 200,
+    "fields": [],
+    "seed": 42,
+    "search": "",
+    "select": "id,doi,title,abstract_inverted_index,publication_year,publication_date,type,language,cited_by_count,open_access,primary_location,primary_topic,authorships,referenced_works"
+  },
+  "per_year": [
+    {
+      "year": 2013,
+      "population_count": 4011377,
+      "requested_sample": 200,
+      "sample_count": 200,
+      "pages": 2,
+      "filter": "publication_year:2013,type:article,language:en",
+      "first_retrieved_at_utc": "2026-10-03T22:19:20.407283+00:00",
+      "last_retrieved_at_utc": "2026-10-03T22:19:21.329222+00:00",
+      "api_cost_usd": 0.00030000000000000003
+    },
+    {
+      "year": 2014,
+      "population_count": 4089234,
+      "requested_sample": 200,
+      "sample_count": 200,
+      "pages": 2,
+      "filter": "publication_year:2014,type:article,language:en",
+      "first_retrieved_at_utc": "2026-10-03T22:19:21.651532+00:00",
+      "last_retrieved_at_utc": "2026-10-03T22:19:22.610665+00:00",
+      "api_cost_usd": 0.00030000000000000003
+    },
+    {
+      "year": 2015,
+      "population_count": 4096678,
+      "requested_sample": 200,
+      "sample_count": 200,
+      "pages": 2,
+      "filter": "publication_year:2015,type:article,language:en",
+      "first_retrieved_at_utc": "2026-10-03T22:19:22.909937+00:00",
+      "last_retrieved_at_utc": "2026-10-03T22:19:23.825528+00:00",
+      "api_cost_usd": 0.00030000000000000003
+    },
+    {
+      "year": 2016,
+      "population_count": 4097779,
+      "requested_sample": 200,
+      "sample_count": 200,
+      "pages": 2,
+      "filter": "publication_year:2016,type:article,language:en",
+      "first_retrieved_at_utc": "2026-10-03T22:19:24.138811+00:00",
+      "last_retrieved_at_utc": "2026-10-03T22:19:24.994785+00:00",
+      "api_cost_usd": 0.00030000000000000003
+    }
+  ],
+  "corpus": "OpenAlex default (core)",
+  "requested_rows": 800,
+  "returned_rows": 800,
+  "refresh_existing": false,
+  "request_count": 12,
+  "estimated_api_cost_usd": 0.0012,
+  "citation_network": {
+    "nodes": 15593,
+    "edges": 14894,
+    "direction": "citing work -> cited work",
+    "sampled_works_with_references": 456,
+    "edges_within_sample": 4,
+    "scope": "Outgoing references of sampled works only; external nodes have no fetched metadata or outgoing references."
+  },
+  "unique_work_ids": 800,
+  "missing_values_by_column": {
+    "openalex_id": 0,
+    "doi": 240,
+    "title": 2,
+    "abstract": 296,
+    "publication_year": 0,
+    "publication_date": 0,
+    "type": 0,
+    "language": 0,
+    "cited_by_count": 0,
+    "referenced_works_count": 0,
+    "referenced_works": 344,
+    "is_oa": 0,
+    "oa_status": 0,
+    "oa_url": 492,
+    "source_name": 108,
+    "primary_topic": 3,
+    "primary_topic_id": 3,
+    "authors": 27,
+    "author_ids": 41
+  },
+  "raw_json_note": "works_raw.json combines original work objects from all API pages"
+}
