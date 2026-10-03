@@ -1,99 +1,159 @@
-# OpenAlex dataset MVP
+# OpenAlex API extractor
 
-The saved MVP contains 50 randomly sampled works classified by OpenAlex as English-language `article`s, published in 2024, with seed 42. The extractor can also make balanced samples across a range of publication years, optionally restricted to listed primary fields. OpenAlex's language label describes the title/abstract metadata, not necessarily the full text. This demonstrates extraction, not a representative research design. The `article` classification alone does not guarantee peer review or a journal source.
+`extract.py` creates balanced, seeded samples of OpenAlex works for local analysis. It collects English-language records classified by OpenAlex as `article`, reconstructs available abstracts, preserves the primary topic hierarchy, and creates an outgoing citation network.
 
-## Files
+Run commands from the `science-network-evolution` directory.
 
-- `data/works.csv`: one row per work, including reconstructed abstracts, reference IDs, and the primary OpenAlex topic hierarchy.
-- `data/citation_edges.csv`: directed edge list (`Source`, `Target`, `Type`); source cites target.
-- `data/citation_nodes.csv`: all sampled and referenced work IDs, including isolated sampled works. Titles and years are populated only for sampled works; external nodes use their ID as a label.
-- `data/works_raw.json`: original work objects in a `results` array. New runs combine objects from all pages; the saved MVP retains its original single-response envelope.
-- `data/metadata.json`: query and validation details. New runs add yearly filters/counts/retrieval times and API cost; the saved MVP has its original request URL and counts.
-- `extract.py`: reusable extractor using only the Python standard library.
+## Quick start
 
-## Run
-
-From the `science-network-evolution` directory:
+The default command samples up to 50 papers from 2024 with seed 42 and writes them to `api_test/data`:
 
 ```bash
 python3 api_test/extract.py
 ```
 
-Set an OpenAlex API key and request up to 500 works **per year** from 2010 through 2025, whose primary field is any of 30, 31, or 32:
+For a larger run, set an OpenAlex API key first. The key is sent in an authorization header and is never written to the output files.
 
 ```bash
 export OPENALEX_API_KEY="your-key"
+```
+
+This example requests up to 200 papers from each year from 2013 through 2016, with no field restriction:
+
+```bash
+python3 api_test/extract.py \
+  --min-year 2013 --max-year 2016 \
+  --size 200 \
+  --output api_test/data_2013_2016
+```
+
+This example requests up to 500 papers per year whose primary field is one of fields 30, 31, or 32:
+
+```bash
 python3 api_test/extract.py \
   --min-year 2010 --max-year 2025 \
   --size 500 --fields "30,31,32" \
   --output api_test/data_2010_2025
 ```
 
-For one year, use equal bounds or the `--year` shortcut. For example:
+## Options
 
-```bash
-python3 api_test/extract.py --size 100 --year 2025 --search "social inequality" --output api_test/data_inequality
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `--size N` | Maximum sampled works per year; accepts 1–10,000 | `50` |
+| `--year YYYY` | Select one publication year | — |
+| `--min-year YYYY` | First publication year, inclusive | `2024` |
+| `--max-year YYYY` | Last publication year, inclusive | `2024` |
+| `--fields "30,31,32"` | Match any listed primary-field ID | all fields |
+| `--search "terms"` | Add an OpenAlex keyword search | no search |
+| `--seed N` | Seed used by OpenAlex sampling | `42` |
+| `--output PATH` | Directory for completed files and temporary checkpoints | `api_test/data` |
+| `--refresh-existing` | Refresh the exact saved IDs in an output containing at most 100 works | off |
+
+`--year` cannot be combined with `--min-year` or `--max-year`. Omitting `--fields` removes the disciplinary restriction. `--search` is keyword search, not an exact topic classifier, and costs more API credits than a normal list request.
+
+The extractor always applies these filters:
+
+```text
+type:article
+language:en
 ```
 
-`--min-year` and `--max-year` are inclusive and both default to 2024. `--year` selects one year and cannot be combined with either bound. `--size` defaults to 50 and accepts 1–10,000 **per year**. OpenAlex returns at most 100 works per page, so larger samples use multiple requests; a year with fewer matching works yields fewer rows. `--fields` accepts up to 100 comma-separated field numbers and matches **any listed primary field**; omit it to include all fields. `--search` is optional keyword search and uses more daily API credits. `--seed` defaults to 42. These are samples, not complete yearly cohorts.
+OpenAlex's language value describes the title and abstract metadata. It does not verify the language of the full paper, and the `article` type does not guarantee peer review.
 
-An API key is optional; set `OPENALEX_API_KEY` for the larger keyed daily budget. It is sent in an authorization header and is not saved in metadata. The extractor checks OpenAlex's remaining daily credits. If the budget runs out, it keeps completed request pages in `<output>/.extract-checkpoint/` and prints the reset time (midnight UTC). Rerun **the same command** to resume; different options need a different output directory. Each checkpoint stores its request URL, retrieval time, rate-limit status, and response. Once every page passes validation, the five completed files replace any existing files in the output directory and the checkpoint is removed. Allow temporary disk space for checkpoints plus the new outputs during assembly.
+## Sampling and paging
 
-To enrich or refresh the exact existing sample instead of resampling:
+`--size` is interpreted per year. For example, `--size 200 --min-year 2013 --max-year 2016` requests up to 800 works: as many as 200 from each of four years. A year with fewer matching works contributes fewer rows.
 
-```bash
-python3 api_test/extract.py --refresh-existing
+OpenAlex returns at most 100 supported results per page. The extractor requests additional pages automatically and combines them into one set of output files. OpenAlex limits a seeded sample to 10,000 works, which is also the maximum accepted `--size`.
+
+The seed makes the sampling procedure repeatable against a fixed OpenAlex corpus. OpenAlex changes over time, so running the same command later may not produce an identical sample.
+
+## Checkpoints and daily API budget
+
+Every completed API page is saved under:
+
+```text
+<output>/.extract-checkpoint/
 ```
 
-This refresh uses stored work IDs and is limited to **100 IDs**; it does not resample a multi-year extraction. Year, size, seed, and search options do not control it. The saved metadata records the actual ID lookup request.
+If the OpenAlex daily budget is exhausted, the extractor prints the reset time and exits while retaining the checkpoint. Rerun the exact same command to continue. Changing the years, size, fields, seed, search, or selected response fields requires another output directory or removal of the unfinished checkpoint after it has been inspected.
 
-Keyword search is not a topic-ID filter. For an exact topic, author, institution, or journal, first resolve its name to an OpenAlex ID, then filter by that ID. See the [OpenAlex API reference](https://help.openalex.org/api/).
+Existing completed output files are replaced only after all pages have been collected and validated. On success, the checkpoint directory is removed. During assembly, allow enough disk space for both the checkpoints and the completed output.
 
-## Columns
+## Output files
+
+Each successful run publishes five files:
+
+| File | Contents |
+| --- | --- |
+| `works.csv` | One row per sampled paper, ready for pandas or other tabular tools |
+| `works_raw.json` | The selected original OpenAlex work objects from every API page |
+| `citation_edges.csv` | Unique directed edges where `Source` cites `Target` |
+| `citation_nodes.csv` | Sampled work nodes plus external referenced-work IDs |
+| `metadata.json` | Parameters, per-year counts and times, API cost, missingness, and network counts |
+
+### `works.csv` columns
 
 | Column | Meaning |
 | --- | --- |
-| openalex_id | Unique work URL; primary key |
-| doi | DOI URL, if available |
-| title | Work title |
-| abstract | Plaintext reconstructed from OpenAlex's `abstract_inverted_index`, if available |
-| publication_year | Publication year |
-| publication_date | Publication date reported by OpenAlex |
-| type | OpenAlex work type; filtered to article |
-| language | Language code, if available |
-| cited_by_count | Citation count at retrieval time |
-| referenced_works_count | Number of reference IDs returned by OpenAlex, computed from the list |
-| referenced_works | Semicolon-separated OpenAlex IDs of works this paper cites |
-| is_oa | OpenAlex open-access flag |
-| oa_status | Open-access category |
-| oa_url | Open-access link, if available |
-| source_name | Source at the primary location |
-| primary_topic | Assigned primary topic name |
-| primary_topic_id | Assigned primary topic URL |
-| primary_topic_score | OpenAlex confidence score for the primary topic |
-| primary_subfield | Subfield containing the primary topic |
-| primary_subfield_id | OpenAlex ID for the primary subfield |
-| primary_field | Field containing the primary topic |
-| primary_field_id | OpenAlex ID for the primary field |
-| primary_domain | Domain containing the primary topic |
-| primary_domain_id | OpenAlex ID for the primary domain |
-| authors | Author names in API order, joined by semicolons |
-| author_ids | Author IDs in corresponding order, joined by semicolons |
+| `openalex_id` | Canonical OpenAlex work ID; primary key |
+| `doi` | DOI URL, when available |
+| `title` | Work title |
+| `abstract` | Plaintext reconstructed from `abstract_inverted_index` |
+| `publication_year` | Publication year |
+| `publication_date` | OpenAlex publication date |
+| `type` | OpenAlex work type; always `article` for a normal extraction |
+| `language` | OpenAlex metadata-language code; always `en` for a normal extraction |
+| `cited_by_count` | Incoming citation count at retrieval time |
+| `referenced_works_count` | Number of returned outgoing references |
+| `referenced_works` | Semicolon-separated IDs cited by this work |
+| `is_oa` | Open-access flag |
+| `oa_status` | Open-access category |
+| `oa_url` | Open-access URL, when available |
+| `source_name` | Source at the primary location |
+| `primary_topic` | Primary topic name |
+| `primary_topic_id` | Primary topic ID |
+| `primary_topic_score` | OpenAlex score for the primary topic |
+| `primary_subfield` | Subfield containing the primary topic |
+| `primary_subfield_id` | Primary subfield ID |
+| `primary_field` | Field containing the primary topic |
+| `primary_field_id` | Primary field ID |
+| `primary_domain` | Domain containing the primary topic |
+| `primary_domain_id` | Primary domain ID |
+| `authors` | Author names in API order, separated by semicolons |
+| `author_ids` | Corresponding OpenAlex author IDs, separated by semicolons |
 
-Blank CSV cells mean missing/not supplied, not zero. JSON preserves nulls, booleans, and nested authorship/institution records. Use raw JSON for reliable author relationships; names themselves can contain delimiters. Extremely large author lists may be truncated by OpenAlex.
+Blank cells mean missing or unavailable values, not zero. The taxonomy columns describe only the hierarchy of the paper's single `primary_topic`; secondary topic assignments are not extracted.
 
-## Validation and limits
+## Citation-network interpretation
 
-### Citation network
+An edge `A → B` means work A cites work B. References outside the sample are retained as external nodes, but only their OpenAlex IDs are known. Their titles, taxonomy, incoming links, and outgoing references are not fetched.
 
-Import `citation_nodes.csv` as a nodes table and `citation_edges.csv` as a directed edges table in a network tool such as Gephi. An edge A → B means A cites B. The extractor retains references outside the sampled works, deduplicates source-target pairs, and includes every edge endpoint in the nodes table.
+The output is therefore a one-step outgoing citation network. A referenced external node with zero observed outgoing degree should not be interpreted as a work with no bibliography. Incoming citations from works outside the sample are also absent.
 
-This is a one-step outgoing citation network. `references_fetched=False` means an external node's own references have not been fetched; its zero observed outgoing degree is not evidence that it cites nothing. An empty reference list for a sampled work means no linked references were returned, not necessarily an empty bibliography. Reference coverage depends on OpenAlex's matching and source coverage. Incoming citations from other papers and links among external nodes are not collected.
+For field-to-field network analysis, join the sampled nodes to `works.csv` using the OpenAlex work ID. Both endpoints have taxonomy data only when both works are part of the sample.
 
-The saved 50 papers were randomly sampled across disciplines, so they may have few or no links to each other. The multi-year mode takes up to the requested number from each year and therefore does not preserve the real distribution of papers by year. For a connected research network, use a focused topic or expand references from selected seed papers. Definitions: [OpenAlex work attributes](https://help.openalex.org/data/works/attributes/).
+## Refresh an existing small sample
 
-The extractor checks unique IDs and requested year/type/language/primary-field filters before publishing data. Missing values are counted in metadata. It retries transient rate limits, server failures, and network failures up to five attempts. A daily-budget limit pauses the run with its checkpoints intact.
+To update the metadata for the exact IDs already saved in an output directory:
 
-The seed makes the sampling procedure repeatable, but OpenAlex changes over time, including during a multi-day extraction. Per-year retrieval times show when pages were fetched; retain the saved raw response for the exact historical sample. Citation counts also change. The sample comes from the default core corpus and should not be treated as representative of all scholarship. This extracts bibliographic metadata, not paper PDFs or full text. See [OpenAlex paging and limits](https://help.openalex.org/api/paging/) and [authentication and daily budgets](https://help.openalex.org/api/authentication/).
+```bash
+python3 api_test/extract.py \
+  --refresh-existing \
+  --output api_test/data
+```
 
-Source: [OpenAlex](https://openalex.org/), accessed through [its API](https://help.openalex.org/api/). Query parameters and retrieval timestamps are in the output's `metadata.json`.
+Refresh is limited to 100 saved IDs because OpenAlex supports at most 100 OR values in one filtered request. It cannot be combined with year, field, or search filters. Larger outputs should be regenerated or handled with a separate batched-enrichment workflow.
+
+## Tests
+
+The tests simulate OpenAlex responses, so they do not spend API credits or replace saved datasets:
+
+```bash
+python3 -m unittest api_test.test_extract -v
+```
+
+They cover multi-year and multi-page sampling, field parsing, citation endpoints, duplicate IDs, missing taxonomy, zero-result years, safe publication, and resumption after a simulated daily-budget limit.
+
+References: [OpenAlex API](https://help.openalex.org/api/), [paging and limits](https://help.openalex.org/api/paging/), and [authentication and daily budgets](https://help.openalex.org/api/authentication/).
