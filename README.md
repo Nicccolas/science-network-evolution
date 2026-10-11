@@ -1,12 +1,25 @@
 # Science Network Evolution
 
-This repository supports a research project using OpenAlex publication metadata to study the spread of deep-learning methods across scientific disciplines.
+This repository supports a research project, developed for MACS 40123, that uses OpenAlex titles and abstracts to study how the semantic breadth of a scientific field changes as its publication volume grows.
 
-The main research question is:
+> How does the semantic breadth of research change as publication volume grows within a scientific field, and how do shifts in thematic composition accompany this relationship?
 
-> As deep-learning methods spread across scientific disciplines, do scientific research communities become increasingly cross-disciplinary, or do they remain separated along disciplinary boundaries?
+The planned analysis embeds titles and abstracts with a scientific document-embedding model (SPECTER2, provisional), measures annual knowledge extent (KE) in fixed-size resampled paper sets, fits shared thematic clusters, and relates annual KE growth to publication growth with time-series models.
 
-The planned analysis combines paper titles and abstracts, OpenAlex disciplinary labels, publication dates, and citation relationships. Papers form network nodes, references form directed edges, and the OpenAlex primary topic hierarchy supplies predefined topic, subfield, field, and domain labels.
+## Project documentation
+
+| File | Purpose |
+| --- | --- |
+| [`docs/research_design.md`](docs/research_design.md) | Canonical research proposal: questions, data, KE procedure, clustering, time-series analysis, limitations, timeline |
+| [`docs/ideas_backlog.md`](docs/ideas_backlog.md) | Extensions to keep in view: nearest-neighbour composition, sliding 3-year windows, journal-based labels, validation ideas, the earlier citation-network question |
+| [`docs/decision_log.md`](docs/decision_log.md) | Open and settled analytic decisions, with dates and reasons |
+| [`docs/data_strategy.md`](docs/data_strategy.md) | Storage and compute budget; OpenAlex API vs AWS collection routes |
+| [`docs/literature.md`](docs/literature.md) | How each cited work informs the project |
+| [`CLAUDE.md`](CLAUDE.md) | Conventions and constraints for AI coding agents |
+
+Course assignment notebooks are named `WeekN_notebook.ipynb` (for example, `Week1_notebook.ipynb`).
+
+The project began with a different question about deep-learning methods and cross-disciplinary citation networks. The API extractor's citation tables come from that phase; the question is parked in the ideas backlog.
 
 ## Current status
 
@@ -57,6 +70,7 @@ python3 api_test/extract.py \
 | `ENVIRONMENT.md` | Environment setup and explanation of package choices |
 | `environment.yml` | Reproducible cross-platform Conda environment using conda-forge |
 | `conda-osx-arm64.lock.txt` | Exact package/build list for Apple Silicon macOS |
+| `Week1_notebook.ipynb` | Week 1 assignment: literature review on distance/similarity metrics, embedding tests, reflection |
 | `exploratory_analysis.ipynb` | Text cleaning, count vectors, TF-IDF, sentence embeddings, similarity, and early network-analysis exploration |
 
 ### API extraction

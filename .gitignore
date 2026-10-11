@@ -1,0 +1,16 @@
+# Research data and derived artifacts (see docs/data_strategy.md)
+/data/
+/outputs/cache/
+*.npy
+*.npz
+*.faiss
+
+# Secrets
+.env
+
+# Python / Jupyter
+__pycache__/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
