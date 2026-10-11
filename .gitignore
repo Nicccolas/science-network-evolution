@@ -18,3 +18,6 @@ __pycache__/
 # Local AI-assistant / editor configuration
 AGENTS.md
 .cursor/
+
+# Project planning docs are kept local only
+docs/
