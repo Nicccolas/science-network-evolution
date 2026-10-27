@@ -11,10 +11,13 @@ of Science: A Longitudinal Case Study Using Document Embeddings and Clustering*.
 > How does the semantic breadth of research change as publication volume grows within a
 > scientific field, and how do shifts in thematic composition accompany this relationship?
 
-The core pipeline: OpenAlex titles and abstracts for one field → SPECTER2 embeddings
+The core pipeline: OpenAlex titles and abstracts for one field (Psychology: journal
+articles whose primary topic is in OpenAlex field 32, 2001–2024) → SPECTER2 embeddings
 (provisional) → annual **knowledge extent** (KE: maximum distance to centroid, in fixed
-2,000-paper samples resampled 1,000 times, following Hao et al. 2026) → shared k-means
-**thematic clusters** → **time-series** regression of Δlog KE on Δlog publication count.
+1,000-paper samples from a 10,000-paper pool per year, resampled 1,000 times, following Hao et al. 2026) → shared k-means
+**thematic clusters** → **composition-standardized KE** (the same draws with theme quotas
+fixed at a reference mix) → **time-series** regression of Δlog KE on Δlog publication
+count (slope β, split exactly into within-theme β_within and composition β_comp).
 
 ## Read these first
 
@@ -36,12 +39,14 @@ When the user mentions a new idea or option they "don't want to forget", add it 
 | `WeekN_notebook.ipynb` (e.g. `Week1_notebook.ipynb`) | **Course assignment notebooks.** Each is graded on its own: a literature review, a method demonstration, and a reflection. Keep them self-contained and readable, and do not restructure or rename them without asking. They may prototype methods, but the research pipeline should not depend on them. |
 | `exploratory_analysis.ipynb` | Early exploration: count vectors, TF-IDF, MiniLM embeddings, cosine similarity, neighbour overlap. |
 | `api_test/extract.py` (+ `test_extract.py`) | OpenAlex API extractor: seeded per-year samples, abstract reconstruction, primary-topic taxonomy, citation edges. Tests are offline. |
+| `src/openalex_counts.py` (+ `test_openalex_counts.py`) | Yearly OpenAlex `group_by` counts for one primary field under several inclusion rules. `journal_articles` is N_t; the others (all articles, with abstracts, + reviews, any-topic, expansion corpus) are robustness or context series. Reuses `api_test/extract.py` helpers; writes to `data/counts/`. |
+| `src/openalex_pool.py` (+ `test_openalex_pool.py`) | The KE pool: one seeded OpenAlex random sample of exactly 10,000 journal articles with abstracts per year (`sample=10000&seed=1`), page-validated and checkpointed. No abstract cleaning unless `--min-abstract-chars` is set (off by default). Writes `pool.parquet`, `pool_report.csv`, `metadata.json`, and raw pages to `data/pool/`. |
+| `src/embeddings.py` (+ `test_embeddings.py`) | The one embedding setup: model registry (SPECTER2 proximity, SPECTER2 base, bge-base), `title + sep_token + abstract`, 512-token truncation, raw CLS vectors, cached revision hashes. Used by the Week 2 model check and by the full embedding run. |
 | `api_test/data*/` | Small development samples (50 and 800 papers). Not analysis cohorts. Their CSVs predate the taxonomy columns, so the notebooks backfill them from `works_raw.json`. |
 | `athena_pilot/` | Tiny AWS Athena/S3 technical pilot (5 records). See its README. |
 | `environment.yml`, `conda-osx-arm64.lock.txt`, `ENVIRONMENT.md` | Conda env `macs40123` (Python 3.12, conda-forge). |
 
-The planned, not yet created, layout for the research pipeline is `src/` (reusable
-modules), `data/` (git-ignored; see `docs/data_strategy.md`), `outputs/figures`,
+The planned layout for the research pipeline is `src/` (reusable modules; started), `data/` (git-ignored; see `docs/data_strategy.md`), `outputs/figures`,
 `outputs/tables`, and `paper/`. Keep reusable logic in `src/` modules that notebooks
 import, not duplicated across notebooks.
 
@@ -50,7 +55,9 @@ import, not duplicated across notebooks.
 ```bash
 conda activate macs40123
 jupyter lab                                     # select kernel "Python (macs40123)"
-python3 -m unittest api_test.test_extract -v    # offline extractor tests
+python3 -m unittest api_test.test_extract src.test_openalex_counts src.test_openalex_pool src.test_embeddings -v    # offline tests
+python3 -m src.openalex_counts --field 32 --min-year 1980 --max-year 2025 --output data/counts/psychology_field32
+python3 -m src.openalex_pool --field 32 --min-year 2001 --max-year 2024 --output data/pool/psychology_field32
 export OPENALEX_API_KEY=...                     # never write the key to files
 python3 api_test/extract.py --min-year 2013 --max-year 2016 --size 200 --output api_test/data_2013_2016
 ```
@@ -79,7 +86,11 @@ conda-forge (the pip wheel crashes with `OMP: Error #15`), and keep `transformer
   `group_by` request costs $0.0001 and returns up to 100 works, so about 1M works per
   day. Keyword `search` costs 10× as much; define fields with filters. `sample=` is
   capped at 10,000; use cursor paging beyond that. Keep checkpoint/resume behaviour, and save
-  `metadata.json` provenance with every pull.
+  `metadata.json` provenance with every pull. The key is exported in the user's shell
+  profile (`~/.bash_profile`, `~/.bashrc`, `~/.zshrc`; the login shell is bash), and scripts
+  read `OPENALEX_API_KEY` from the environment. Check it with
+  `[ -n "$OPENALEX_API_KEY" ] && echo set`, never by printing it; if it is missing, ask the
+  user to restart the session. The repo remote is public.
 
 ## Research-integrity conventions
 
@@ -89,13 +100,19 @@ These matter for publication readiness. Flag any code that violates them.
   cluster count by the documented criteria, **not** by which gives the strongest
   growth–KE pattern. Log each choice in `docs/decision_log.md` before running the
   outcome analysis.
-- **Fixed-size samples.** KE must be computed on equal-size samples across years (2,000
-  by default). Never compute max-distance on whole annual corpora; larger years would
+- **Fixed-size samples.** KE must be computed on equal-size samples across years (1,000-paper
+  draws from a 10,000-paper pool per year). Never compute max-distance on whole annual corpora; larger years would
   win mechanically. The same logic applies to kNN reference sets.
 - **Resamples are not observations.** The 1,000 KE draws describe sampling variation
   within a year. Do not use them as the n of the time-series model or as confidence
   intervals for the growth relationship. Overlapping 3-year windows are serially
   correlated by construction.
+- **Annual, not cumulative.** KE and publication counts are per-year flows. Never compute
+  KE on the cumulative literature (see backlog idea 12).
+- **Measure composition effects; don't assume their sign.** Theme centrality is relative
+  to the same year's field centroid, which a growing theme pulls toward itself, so an
+  edge theme can lower max-distance KE as it grows. Report β_within and β_comp, not only
+  their ratio.
 - **Two count series.** Report all eligible papers and papers with usable abstracts
   separately, so coverage changes are not mistaken for growth.
 - **One fixed embedding setup.** Use one model, revision hash, input format, and

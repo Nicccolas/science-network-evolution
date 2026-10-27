@@ -21,3 +21,6 @@ AGENTS.md
 
 # Project planning docs are kept local only
 docs/
+
+# Session handoff prompts (local only)
+prompts/
