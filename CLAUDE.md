@@ -42,6 +42,8 @@ When the user mentions a new idea or option they "don't want to forget", add it 
 | `src/openalex_counts.py` (+ `test_openalex_counts.py`) | Yearly OpenAlex `group_by` counts for one primary field under several inclusion rules. `journal_articles` is N_t; the others (all articles, with abstracts, + reviews, any-topic, expansion corpus) are robustness or context series. Reuses `api_test/extract.py` helpers; writes to `data/counts/`. |
 | `src/openalex_pool.py` (+ `test_openalex_pool.py`) | The KE pool: one seeded OpenAlex random sample of exactly 10,000 journal articles with abstracts per year (`sample=10000&seed=1`), page-validated and checkpointed. No abstract cleaning unless `--min-abstract-chars` is set (off by default). Writes `pool.parquet`, `pool_report.csv`, `metadata.json`, and raw pages to `data/pool/`. |
 | `src/embeddings.py` (+ `test_embeddings.py`) | The one embedding setup: model registry (SPECTER2 proximity, SPECTER2 base, bge-base), `title + sep_token + abstract`, 512-token truncation, raw CLS vectors, cached revision hashes. Used by the Week 2 model check and by the full embedding run. |
+| `src/embed_pool.py` (+ `test_embed_pool.py`) | The full embedding run: embeds every pool paper once, year by year, writing `vectors_<year>.npy` (float32, pool order) and `ids_<year>.parquet` (openalex_id, untruncated token count) plus `embedding_report.csv` and `metadata.json` to `data/embeddings/<model>/`. Skips finished years on a re-run; stops if the pool, model revision, device, batch size, or package versions differ from the earlier run. About 4 hours per model on `mps`. |
+| `scripts/sync_notebook.py` (+ `test_sync_notebook.py`; local only, git-ignored) | Copies a course notebook into the assignments repo (`../macs-40123-26f-assignments-nicccolas/weekN/`) so it runs there on its own: rewrites `api_test` imports to `src` and the pool path to yearly files, links repo files the folder lacks to GitHub, copies the imported modules and `environment.yml`, checks data paths, re-runs the copy without an API key, and exports HTML. Never commits. |
 | `api_test/data*/` | Small development samples (50 and 800 papers). Not analysis cohorts. Their CSVs predate the taxonomy columns, so the notebooks backfill them from `works_raw.json`. |
 | `athena_pilot/` | Tiny AWS Athena/S3 technical pilot (5 records). See its README. |
 | `environment.yml`, `conda-osx-arm64.lock.txt`, `ENVIRONMENT.md` | Conda env `macs40123` (Python 3.12, conda-forge). |
@@ -55,9 +57,12 @@ import, not duplicated across notebooks.
 ```bash
 conda activate macs40123
 jupyter lab                                     # select kernel "Python (macs40123)"
-python3 -m unittest api_test.test_extract src.test_openalex_counts src.test_openalex_pool src.test_embeddings -v    # offline tests
+python3 -m unittest api_test.test_extract src.test_openalex_counts src.test_openalex_pool src.test_embeddings src.test_embed_pool -v    # offline tests
+python3 scripts/sync_notebook.py Week2_notebook.ipynb week2/Week2_notebook.ipynb   # update the assignments copy (--dry-run to preview)
+python3 -m unittest scripts.test_sync_notebook   # its offline tests
 python3 -m src.openalex_counts --field 32 --min-year 1980 --max-year 2025 --output data/counts/psychology_field32
 python3 -m src.openalex_pool --field 32 --min-year 2001 --max-year 2024 --output data/pool/psychology_field32
+caffeinate -is python3 -m src.embed_pool --pool data/pool/psychology_field32/pool.parquet --output data/embeddings/specter2_proximity   # ~4 h; resumable
 export OPENALEX_API_KEY=...                     # never write the key to files
 python3 api_test/extract.py --min-year 2013 --max-year 2016 --size 200 --output api_test/data_2013_2016
 ```

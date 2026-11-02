@@ -24,3 +24,5 @@ docs/
 
 # Session handoff prompts (local only)
 prompts/
+
+scripts/
