@@ -1,0 +1,24 @@
+,type,distinct,missing,role
+openalex_id,identifier,240000,0.0,key / link
+publication_year,numeric,24,0.0,defines the yearly samples
+doi,identifier,208213,0.13239583333333332,key / link
+title,text,238632,0.00027916666666666666,model input
+abstract,text,237895,0.0,model input; KE and themes come from it
+abstract_chars,numeric,6300,0.0,quality checks
+publication_date,date,8253,0.0,context only
+type,constant,1,0.0,inclusion rule
+language,constant,1,0.0,inclusion rule
+primary_topic,categorical,141,0.0,topic panel unit (RQ1)
+primary_topic_id,identifier,141,0.0,key / link
+primary_topic_score,numeric,2997,0.0,confidence of the topic label
+primary_subfield,categorical,7,0.0,fixed theme set (RQ2)
+primary_subfield_id,identifier,7,0.0,key / link
+primary_field,constant,1,0.0,inclusion rule
+primary_field_id,constant,1,0.0,inclusion rule
+source_id,identifier,28426,0.0,key / link
+source_name,categorical,28268,0.0,journal mix; junk checks
+source_issn_l,identifier,26056,0.05460416666666667,key / link
+source_type,constant,1,0.0,inclusion rule
+cited_by_count,numeric,1363,0.0,context only
+source_seed,constant,1,0.0,OpenAlex sample seed (always 1)
+sample_position,provenance,10000,0.0,order in the OpenAlex sample
