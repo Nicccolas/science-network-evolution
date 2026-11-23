@@ -12,6 +12,7 @@ import sys
 import tempfile
 import time
 from datetime import datetime, timedelta, timezone
+from http.client import HTTPException
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -63,8 +64,8 @@ def fetch(url):
                     raise DailyBudgetExceeded(header_int(error.headers, "X-RateLimit-Reset")) from None
             elif error.code not in (500, 502, 503, 504):
                 raise RuntimeError(f"OpenAlex returned HTTP {error.code}") from None
-        except (URLError, TimeoutError):
-            pass
+        except (URLError, TimeoutError, ConnectionError, HTTPException):
+            pass   # network trouble, including a reply cut off mid-read (IncompleteRead): try again
         if attempt < 4:
             time.sleep(2 ** attempt)
     raise RuntimeError("OpenAlex request failed after five attempts; checkpoints were kept")

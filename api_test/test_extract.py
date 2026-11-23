@@ -1,6 +1,8 @@
 """Behavior checks for multi-page sampling and safe output publication."""
 
 import csv
+from http.client import IncompleteRead
+import io
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -181,6 +183,19 @@ class ExtractTests(unittest.TestCase):
             extract.parse_fields("30,,32")
         with self.assertRaises(SystemExit):
             extract.main(["--min-year", "2025", "--max-year", "2024"])
+
+
+class FetchTests(unittest.TestCase):
+    def test_cut_off_or_reset_replies_are_retried(self):
+        class Reply(io.BytesIO):
+            headers = {"X-RateLimit-Remaining": "42"}
+        replies = [IncompleteRead(b"{", 10), ConnectionResetError(), Reply(b'{"results": []}')]
+        with patch.object(extract, "urlopen", side_effect=replies) as urlopen, \
+                patch.object(extract.time, "sleep") as sleep:
+            payload, rate = extract.fetch("https://api.openalex.org/works")
+        self.assertEqual((payload, rate["remaining"]), ({"results": []}, 42))
+        self.assertEqual(urlopen.call_count, 3)
+        self.assertEqual([call.args[0] for call in sleep.call_args_list], [1, 2])
 
 
 if __name__ == "__main__":
