@@ -14,7 +14,7 @@ from urllib.parse import parse_qs, urlsplit
 import pandas as pd
 
 from api_test import extract
-from src import openalex_topic_sample as topic_sample
+from src import embed_pool, openalex_topic_sample as topic_sample
 
 
 RATE = {"remaining": None, "reset_seconds": None}
@@ -81,6 +81,7 @@ class TopicSampleTests(unittest.TestCase):
             run(directory)
             sample = read(directory, "sample.parquet")
             counts = read(directory, "topic_counts.csv")
+            to_embed = read(directory, "to_embed.parquet")
             metadata = json.loads((Path(directory) / "metadata.json").read_text())
             urls = [call.args[0] for call in fetch.call_args_list]
             page = Path(directory) / "raw" / "year=2001" / "topic=T1" / "seed=1" / "page_0001.json.gz"
@@ -97,6 +98,7 @@ class TopicSampleTests(unittest.TestCase):
         self.assertEqual(set(sample["source_host_organization_name"]), {"Publisher"})
         self.assertEqual(set(sample["source_host_organization_lineage_names"]), {"Publisher; Parent"})
         self.assertTrue(sample["in_pool"].isna().all())
+        self.assertEqual(to_embed["openalex_id"].tolist(), sample["openalex_id"].tolist())  # no pool given
 
         row = counts.query("year == 2001 and topic_id == 'T1'").iloc[0]
         self.assertEqual((row["journal_articles"], row["journal_articles_abstract"], row["sample_size"]),
@@ -128,8 +130,14 @@ class TopicSampleTests(unittest.TestCase):
             run(Path(directory) / "out", "--pool", str(pool))
             sample = read(Path(directory) / "out", "sample.parquet")
             report = read(Path(directory) / "out", "sample_report.csv")
+            to_embed = read(Path(directory) / "out", "to_embed.parquet")
         self.assertEqual(sorted(sample.loc[sample["in_pool"], "openalex_id"]), sorted(in_both))
         self.assertEqual(report["in_pool"].tolist(), [10, 0])
+        # Only papers without pool vectors are left to embed, in sample order, as embed_pool reads them.
+        self.assertEqual(list(to_embed), embed_pool.POOL_COLUMNS)
+        self.assertEqual(to_embed["openalex_id"].tolist(),
+                         sample.loc[~sample["in_pool"], "openalex_id"].tolist())
+        self.assertEqual(len(to_embed), 900 - 10)
 
     def test_counts_only_pulls_counts_and_a_later_run_reuses_them(self, _disk):
         with TemporaryDirectory() as directory:

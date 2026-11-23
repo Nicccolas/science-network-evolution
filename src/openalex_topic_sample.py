@@ -12,6 +12,9 @@ rests on one database state, and the run stops before sampling if the disk is to
 Outputs in --output:
   topic_counts.csv    one row per topic-year in either count, with in_panel and sample_size
   sample.parquet      one row per sampled paper: the pool's columns, publisher fields, in_pool
+  to_embed.parquet    the sampled papers not in the pool (all of them without --pool), with the
+                      columns src/embed_pool.py reads, for: python3 -m src.embed_pool --pool
+                      <output>/to_embed.parquet --output data/embeddings/<model>_topic_sample
   sample_report.csv   per-year totals, requests, and reported cost
   metadata.json       filters, thresholds, seeds, request totals, and notes
   raw/                every response; sample pages are gzip-compressed JSON
@@ -59,6 +62,7 @@ DISK_MARGIN = 2 * 1024 ** 3  # free space to leave for everything else on the la
 PUBLISHER_COLUMNS = ("source_host_organization", "source_host_organization_name",
                      "source_host_organization_lineage_names")
 COLUMNS = (*openalex_pool.COLUMNS, *PUBLISHER_COLUMNS, "in_pool")
+EMBED_COLUMNS = ("openalex_id", "publication_year", "title", "abstract")  # embed_pool.POOL_COLUMNS
 COUNT_COLUMNS = ("topic_id", "topic_name", "year", "journal_articles", "journal_articles_abstract",
                  "abstract_share", "in_panel", "sample_size")
 
@@ -287,6 +291,11 @@ def write_sample(output, frames):
     temporary = output / ".sample.parquet.tmp"
     sample.to_parquet(temporary, index=False, compression="zstd")
     temporary.replace(output / "sample.parquet")
+    # The papers src/embed_pool.py still has to embed: pool papers already have vectors.
+    to_embed = sample.loc[sample["in_pool"].ne(True), list(EMBED_COLUMNS)]
+    temporary = output / ".to_embed.parquet.tmp"
+    to_embed.to_parquet(temporary, index=False, compression="zstd")
+    temporary.replace(output / "to_embed.parquet")
     return len(sample)
 
 
