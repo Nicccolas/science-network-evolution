@@ -1,0 +1,4 @@
+scenario,share of runs with p < 0.05
+no shift (false-positive rate),0.034
+the subfields' full-pool shift,0.14
+"the same shift, 1,000 papers per window",0.445
