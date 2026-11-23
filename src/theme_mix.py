@@ -40,7 +40,11 @@ PAPER_COLUMNS = ["openalex_id", "publication_year", "title", "abstract", "primar
 
 
 def ke_eligible(pool):
-    """Pool papers kept at the KE step: a title, and an abstract not shared with another pool paper."""
+    """The pre-2026-11-21 rule: a title, and an abstract not shared with another pool paper.
+
+    Kept unchanged so the Week 2 pilot, pilot_theme_mix.ipynb and eda.ipynb reproduce. The research
+    pipeline uses src/ke_eligibility.py (decision log, 2026-11-21).
+    """
     missing_title = pool["title"].fillna("").str.strip() == ""
     shared_abstract = pool["abstract"].str.lower().str.strip().duplicated(keep=False)
     return ~(missing_title | shared_abstract)
