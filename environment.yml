@@ -4,8 +4,10 @@ channels:
   - nodefaults
 dependencies:
   - python=3.12
-  # Collection, tabular processing, and columnar storage
-  - pandas=3.0.6
+  # Collection, tabular processing, and columnar storage. pandas is held at
+  # 2.3.x because prophet 1.1.7 fails on pandas 3 (crosstab duplicate-label
+  # error in fit).
+  - pandas=2.3.3
   - requests=2.34.2
   - pyarrow=25.0.0
   - tqdm=4.70.1
@@ -34,7 +36,10 @@ dependencies:
   - ipykernel=7.4.0
   - matplotlib=3.11.2
   - seaborn=0.13.2
-  # adapters is not packaged on conda-forge
+  # adapters is not packaged on conda-forge. prophet and cmdstanpy follow the
+  # course's Prophet notebook (cmdstanpy 1.2.5: prophet issue #2462).
   - pip=26.2.1
   - pip:
       - adapters==1.3.0
+      - prophet==1.1.7
+      - cmdstanpy==1.2.5

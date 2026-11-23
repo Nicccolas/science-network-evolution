@@ -21,10 +21,11 @@ conda env create --file environment.yml
 
 ```bash
 conda create --name macs40123 --file conda-osx-arm64.lock.txt
-conda run -n macs40123 pip install --no-deps adapters==1.3.0
+conda run -n macs40123 pip install --no-deps adapters==1.3.0 pandas==2.3.3 pytz==2026.6 \
+    prophet==1.1.7 cmdstanpy==1.2.5 stanio==0.5.1 holidays==0.108 importlib-resources==7.1.0
 ```
 
-The explicit list records conda packages only, so `adapters` (PyPI-only) is installed separately. `--no-deps` stops pip from replacing the conda-installed `transformers`.
+The explicit list records conda packages only, so the PyPI packages are installed separately: `adapters` (PyPI-only), and `prophet` with its dependencies. In the working environment pandas 2.3.3 came from pip with prophet, so the lock has no pandas. `--no-deps` stops pip from replacing the conda-installed `transformers`.
 
 These creation commands assume the target environment does not already exist; use another name to create a separate copy. The explicit lock is specific to `osx-arm64` and includes transitive dependencies.
 
@@ -37,6 +38,7 @@ These creation commands assume the target environment does not already exist; us
 | Numerical work and sparse matrices | numpy, scipy |
 | Title/abstract TF-IDF features, classification, evaluation | scikit-learn |
 | Statistical models of changes over time | statsmodels |
+| Time-series decomposition (trend, seasonality) of monthly publication counts | prophet, cmdstanpy |
 | Directed citation networks and disciplinary mixing | networkx |
 | Larger graph analysis and Leiden communities | python-igraph, leidenalg |
 | Document embeddings (SPECTER2, MiniLM) on the Apple GPU (`mps`) | pytorch, transformers, adapters, sentence-transformers, huggingface_hub |
@@ -44,6 +46,10 @@ These creation commands assume the target environment does not already exist; us
 | Figures | matplotlib, seaborn |
 
 The initial text-classification tools support keyword and TF-IDF baselines without downloading pretrained models. Package installation does not determine the study's community definition, graph projection, treatment of edge direction, temporal windows, or validation strategy; those remain research design choices.
+
+## Prophet constraint
+
+- **pandas is held at 2.3.x** because prophet 1.1.7 fails in `fit` on pandas 3 (a crosstab duplicate-label error). cmdstanpy is pinned to 1.2.5 (prophet issue #2462). These are the versions in the course's Prophet notebook; prophet was installed with pip, which replaced the conda-forge pandas 3.0.6. The offline tests pass on pandas 2.3.3, and the embedding packages are unchanged.
 
 ## Embedding-stack constraints
 
