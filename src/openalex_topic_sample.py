@@ -58,6 +58,7 @@ MAX_GROUPS = 200        # one group_by page; a year with more topics than this w
 COST_PER_REQUEST = 0.0001
 BYTES_PER_PAPER = 1_500  # gzip raw page (~0.96 KB) + parquet row (~0.56 KB), measured on the pool
 DISK_MARGIN = 2 * 1024 ** 3  # free space to leave for everything else on the laptop
+DRIFT_TOLERANCE = 0.05  # share of a topic-year's papers that may leave it between its count and its sample
 
 PUBLISHER_COLUMNS = ("source_host_organization", "source_host_organization_name",
                      "source_host_organization_lineage_names")
@@ -69,7 +70,10 @@ COUNT_COLUMNS = ("topic_id", "topic_name", "year", "journal_articles", "journal_
 SAMPLING_NOTE = ("Each panel topic-year is one OpenAlex random sample (sample=sample_size, "
                  "seed=sample_seed) of its journal articles with abstracts, paged with basic paging "
                  "(per_page=100). sample_size = min(journal_articles_abstract, cap), so topic-years "
-                 "with fewer than cap such articles contribute all of them.")
+                 "with fewer than cap such articles contribute all of them. OpenAlex counts keep "
+                 "moving by a few papers, so a topic-year that has lost papers by the time it is "
+                 "sampled contributes all the papers it still has; more than drift_tolerance missing "
+                 "stops the run. The shortfall shows as sampled < planned_sample in sample_report.csv.")
 COUNT_NOTE = ("journal_articles is N_kt, the topic's size in the panel (decision log, 2026-11-19); "
               "journal_articles_abstract sets panel membership (>= min_papers) and sample_size. "
               "Both are group_by primary_topic.id counts pulled before any sample.")
@@ -197,13 +201,21 @@ def checkpoint_request_gz(path, url, validator):
     return record
 
 
-def validate_sample_page(payload, field, year, topic, size, expected):
+def sampled_count(payload, year, topic, size):
+    """The sample's size as OpenAlex reports it: size, or a little less if papers left the topic-year."""
     count = (payload.get("meta") or {}).get("count")
-    if count != size:
+    if not isinstance(count, int) or count > size or count < size * (1 - DRIFT_TOLERANCE):
         raise RuntimeError(f"{year} {topic}: OpenAlex reports {count} works for a sample of {size}. "
-                           f"The topic-year changed since the counts were pulled; delete "
-                           f"raw/year={year}/ and rerun to redraw this year.")
-    openalex_pool.validate_page(payload, field, year, expected)
+                           f"The topic-year changed by more than {DRIFT_TOLERANCE:.0%} since the counts "
+                           f"were pulled; delete raw/year={year}/ and rerun to redraw this year.")
+    return count
+
+
+def validate_sample_page(payload, field, year, topic, size, page):
+    remaining = sampled_count(payload, year, topic, size) - (page - 1) * 100
+    if remaining <= 0:
+        raise RuntimeError(f"{year} {topic}: page {page} is past the end of the sample")
+    openalex_pool.validate_page(payload, field, year, min(100, remaining))
     topic_url = f"https://openalex.org/{topic}"
     for work in payload["results"]:
         if (work.get("primary_topic") or {}).get("id") != topic_url:
@@ -216,11 +228,17 @@ def sample_topic_year(raw, field, year, topic, size):
               "seed": SAMPLE_SEED, "per_page": 100, "select": openalex_pool.SELECT}
     directory = raw / f"year={year}" / f"topic={topic}" / f"seed={SAMPLE_SEED}"
     works, records, seen = [], [], set()
-    for page in range(1, pages_needed(size) + 1):
-        expected = min(100, size - (page - 1) * 100)
+    page, count = 1, size
+    while (page - 1) * 100 < count:  # count is the size OpenAlex reports on page 1
         record = checkpoint_request_gz(
             directory / f"page_{page:04d}.json.gz", extract.request_url({**params, "page": page}),
-            lambda payload, n=expected: validate_sample_page(payload, field, year, topic, size, n))
+            lambda payload, n=page: validate_sample_page(payload, field, year, topic, size, n))
+        reported = record["payload"]["meta"]["count"]
+        if page > 1 and reported != count:
+            raise RuntimeError(f"{year} {topic}: the sample changed from {count} to {reported} works "
+                               f"while paging; delete raw/year={year}/topic={topic}/ and rerun")
+        count = reported
+        page += 1
         for work in record["payload"]["results"]:
             if work["id"] in seen:
                 raise RuntimeError(f"{year} {topic}: the sample repeats {work['id']}")
@@ -311,6 +329,7 @@ def write_metadata(output, args, reports, sampled_rows):
                     "sample": topic_filter(args.field, "<year>", "<topic>")},
         "group_by": "primary_topic.id", "corpus": "core", "select": openalex_pool.SELECT,
         "min_papers": args.min_papers, "cap": args.cap, "sample_seed": SAMPLE_SEED,
+        "drift_tolerance": DRIFT_TOLERANCE,
         "pool": str(args.pool) if args.pool else None,
         "topic_years_in_panel": sum(r["panel_topics"] for r in reports),
         "planned_sample": sum(r["planned_sample"] for r in reports),

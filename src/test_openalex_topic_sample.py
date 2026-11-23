@@ -43,7 +43,8 @@ def chosen(year, topic, seed, size):
     return random.Random(f"{topic}-{year}-{seed}").sample(range(TOPICS[topic][1]), size)
 
 
-def response(url, wrong_topic=False, drift=None, bad_sum=False):
+def response(url, wrong_topic=False, drift=(None, 0), bad_sum=False):
+    """A fake OpenAlex. drift = (topic, k): k of the topic's papers left it after the counts."""
     params = parse_qs(urlsplit(url).query)
     filter_value = params["filter"][0]
     year = int(re.search(r"publication_year:(\d+)", filter_value).group(1))
@@ -57,10 +58,12 @@ def response(url, wrong_topic=False, drift=None, bad_sum=False):
                 "group_by": groups}, RATE
     topic = re.search(r"primary_topic\.id:(T\d+)", filter_value).group(1)
     size, seed, page = (int(params[key][0]) for key in ("sample", "seed", "page"))
-    results = [fake_work(year, topic, i) for i in chosen(year, topic, seed, size)[(page - 1) * 100: page * 100]]
+    population = TOPICS[topic][1] - (drift[1] if topic == drift[0] else 0)
+    count = min(size, population)  # OpenAlex returns every paper when the sample asks for more
+    picked = random.Random(f"{topic}-{year}-{seed}").sample(range(population), count)  # = chosen() if no drift
+    results = [fake_work(year, topic, i) for i in picked[(page - 1) * 100: page * 100]]
     if wrong_topic:
         results[0]["primary_topic"]["id"] = "https://openalex.org/T9"
-    count = size - 1 if topic == drift else size
     return {"meta": {"count": count, "cost_usd": 0.0001}, "results": results}, RATE
 
 
@@ -182,11 +185,30 @@ class TopicSampleTests(unittest.TestCase):
                 run(directory)
             self.assertFalse(any((Path(directory) / "raw").rglob("page_*.json.gz")))
 
-    def test_sample_smaller_than_the_count_is_an_error(self, _disk):
+    def test_topic_year_that_lost_a_few_papers_gives_all_it_still_has(self, _disk):
         with TemporaryDirectory() as directory, patch.object(
-                extract, "fetch", side_effect=lambda url: response(url, drift="T2")):
-            with self.assertRaisesRegex(RuntimeError, "changed since the counts were pulled"):
+                extract, "fetch", side_effect=lambda url: response(url, drift=("T2", 7))):  # 4.7% of 150
+            run(directory)
+            sample = read(directory, "sample.parquet")
+            report = read(directory, "sample_report.csv")
+        t2 = sample[sample["primary_topic_id"].str.endswith("T2")]
+        self.assertEqual(t2.groupby("publication_year").size().tolist(), [143, 143])
+        self.assertEqual(report["planned_sample"].tolist(), [450, 450])
+        self.assertEqual(report["sampled"].tolist(), [443, 443])
+
+    def test_pages_follow_the_size_openalex_reports(self, _disk):
+        with TemporaryDirectory() as directory, patch.object(topic_sample, "DRIFT_TOLERANCE", 0.5), \
+                patch.object(extract, "fetch", side_effect=lambda url: response(url, drift=("T2", 50))) as fetch:
+            run(directory)
+            self.assertEqual(fetch.call_count, 2 * (2 + 3 + 1))  # T2: 100 papers left, one page
+            self.assertEqual(len(read(directory, "sample.parquet")), 2 * 400)
+
+    def test_sample_much_smaller_than_the_count_is_an_error(self, _disk):
+        with TemporaryDirectory() as directory, patch.object(
+                extract, "fetch", side_effect=lambda url: response(url, drift=("T2", 8))):  # 5.3%
+            with self.assertRaisesRegex(RuntimeError, "changed by more than 5% since the counts"):
                 run(directory)
+            self.assertFalse(any((Path(directory) / "raw").rglob("topic=T2/seed=1/page_*.json.gz")))
 
     def test_topic_groups_must_sum_to_the_total(self, _disk):
         with TemporaryDirectory() as directory, patch.object(
