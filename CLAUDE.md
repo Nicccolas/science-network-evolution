@@ -12,8 +12,8 @@ of Science: A Longitudinal Case Study Using Document Embeddings and Clustering*.
 > scientific field, and how do shifts in thematic composition accompany this relationship?
 
 The core pipeline: OpenAlex titles and abstracts for one field (Psychology: journal
-articles whose primary topic is in OpenAlex field 32, 2001–2024) → SPECTER2 embeddings
-(provisional) → annual **knowledge extent** (KE: maximum distance to centroid, in fixed
+articles whose primary topic is in OpenAlex field 32, 2001–2024) → SPECTER2 proximity embeddings
+(confirmed 2026-11-20) → annual **knowledge extent** (KE: maximum distance to centroid, in fixed
 1,000-paper samples from a 10,000-paper pool per year, resampled 1,000 times, following Hao et al. 2026) → shared k-means
 **thematic clusters** → **composition-standardized KE** (the same draws with theme quotas
 fixed at a reference mix) → **time-series** regression of Δlog KE on Δlog publication
@@ -83,7 +83,7 @@ conda-forge (the pip wheel crashes with `OMP: Error #15`), and keep `transformer
 
 ## Hard constraints
 
-- **Disk:** about 13 GB free on 2026-10-10. Never download the OpenAlex snapshot or any
+- **Disk:** about 87 GiB free on 2026-11-23 (13 GB on 2026-10-10). Never download the OpenAlex snapshot or any
   multi-GB file locally without checking `df -h ~` and asking first. Keep the project's
   data under about 8 GB. Store embeddings in chunks; float16 storage is acceptable.
 - **Data goes in `data/` (git-ignored).** Do not commit large data, embeddings, or API
