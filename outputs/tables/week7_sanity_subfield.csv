@@ -1,0 +1,11 @@
+,max distance,95th percentile
+main: mean level,11.949333679150678,10.526900828402226
+random removal: mean level,11.959676151779258,10.526263391319652
+Clinical removed: mean level,11.92536795111873,10.520097529543897
+"Clinical removed minus random, mean over years (%)",-0.2899296007514087,-0.057194358120866984
+years with Clinical removed outside the random range,6.0,14.0
+"change 2001-03 to 2022-24, main (%)",-1.3557333871715094,-3.9487430720325234
+"change, random removal (%, mean of 10)",-1.2348837308551852,-3.8937180287770268
+"change, random removal (%, min)",-2.018553375699983,-4.030349490700136
+"change, random removal (%, max)",-0.4227009223706668,-3.8050038490067384
+"change, Clinical removed (%)",-1.5033294590568569,-3.6254917538007914
