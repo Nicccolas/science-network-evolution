@@ -106,6 +106,90 @@ class SanityCheckTests(unittest.TestCase):
             self.assertEqual(json.loads(out.with_suffix(".json").read_text())["config"]["years"], [2001, 2002])
 
 
+class ReplacementTests(unittest.TestCase):
+    def test_replaced_vectors_keep_the_draws_and_change_only_their_papers(self):
+        with TemporaryDirectory() as directory:
+            eligibility = fake_embeddings(directory)
+            target = "https://openalex.org/W2001001"   # eligible, 2001
+            original = ke.load_year(directory, 2001, set(eligibility["openalex_id"]))
+            same = pd.DataFrame(original[0][original[1] == target], index=[target])
+            far = pd.DataFrame(np.full((1, 4), 50.0), index=[target])
+            settings = dict(n_draws=30, size=20, l2=False)
+            base = ke.field_draws(directory, eligibility, [2001, 2002], **settings)
+            pd.testing.assert_frame_equal(base, ke.field_draws(directory, eligibility, [2001, 2002], replace=same, **settings))
+            moved = ke.field_draws(directory, eligibility, [2001, 2002], replace=far, **settings)
+            pd.testing.assert_frame_equal(base.query("year == 2002"), moved.query("year == 2002"))
+            in_draw = moved.query("year == 2001")["farthest_id"].eq(target)
+            self.assertTrue(in_draw.any())
+            unchanged = base.query("year == 2001")["ke_max"].to_numpy()[~in_draw.to_numpy()]
+            np.testing.assert_array_equal(unchanged, moved.query("year == 2001")["ke_max"].to_numpy()[~in_draw.to_numpy()])
+
+    def test_saved_run_is_not_reused_with_other_vectors(self):
+        with TemporaryDirectory() as directory:
+            eligibility = fake_embeddings(directory)
+            out = Path(directory) / "draws.parquet"
+            target = "https://openalex.org/W2001001"
+            settings = dict(output=out, n_draws=30, size=20, l2=False)
+            base = ke.field_draws(directory, eligibility, [2001], **settings)
+            moved = ke.field_draws(directory, eligibility, [2001], replace=pd.DataFrame(np.full((1, 4), 50.0), index=[target]),
+                                   **settings)
+            self.assertFalse(np.allclose(base["ke_max"], moved["ke_max"]))
+            config = json.loads(out.with_suffix(".json").read_text())["config"]
+            self.assertEqual(config["replaced_vectors"]["papers"], 1)
+            pd.testing.assert_frame_equal(base, ke.field_draws(directory, eligibility, [2001], **settings))
+
+    def test_replacing_an_ineligible_paper_is_an_error(self):
+        with TemporaryDirectory() as directory:
+            eligibility = fake_embeddings(directory)
+            excluded = eligibility.loc[~eligibility["ke_eligible"], "openalex_id"].iloc[0]
+            with self.assertRaisesRegex(RuntimeError, "not eligible"):
+                ke.field_draws(directory, eligibility, [2001], replace=pd.DataFrame(np.zeros((1, 4)), index=[excluded]),
+                               n_draws=5, size=20, l2=False)
+
+
+class CumulativeTests(unittest.TestCase):
+    def test_draws_cover_the_years_so_far_in_proportion_to_their_weights(self):
+        with TemporaryDirectory() as directory:
+            eligibility = fake_embeddings(directory)
+            draws = ke.cumulative_draws(directory, eligibility, [2001, 2002], {2001: 1.0, 2002: 3.0}, n_draws=200, size=20)
+            first, second = draws.query("year == 2001"), draws.query("year == 2002")
+            self.assertTrue((first["newest_share"] == 1).all())           # the first year has only itself
+            self.assertTrue((first["farthest_year"] == 2001).all())
+            self.assertAlmostEqual(second["newest_share"].mean(), 0.75, delta=0.03)
+            self.assertEqual(set(second["farthest_year"]), {2001, 2002})
+            self.assertEqual(second["eligible"].iloc[0], 108)
+            excluded = set(eligibility.loc[~eligibility["ke_eligible"], "openalex_id"])
+            self.assertFalse(set(draws["farthest_id"]) & excluded)
+
+    def test_first_year_is_a_sample_of_that_year_only(self):
+        with TemporaryDirectory() as directory:
+            eligibility = fake_embeddings(directory)
+            X, ids = ke.load_year(directory, 2001, set(eligibility.loc[eligibility["ke_eligible"], "openalex_id"]))
+            cumulative = ke.cumulative_draws(directory, eligibility, [2001], {2001: 1.0}, n_draws=5, size=20)
+            for _, row in cumulative.iterrows():
+                self.assertIn(row["farthest_id"], set(ids))
+            self.assertTrue((cumulative["ke_max"] >= cumulative["ke_p95"]).all())
+
+    def test_saved_run_is_reused_only_with_the_same_weights(self):
+        with TemporaryDirectory() as directory:
+            eligibility = fake_embeddings(directory)
+            out = Path(directory) / "cumulative.parquet"
+            settings = dict(output=out, n_draws=30, size=20)
+            a = ke.cumulative_draws(directory, eligibility, [2001, 2002], {2001: 1.0, 2002: 1.0}, **settings)
+            pd.testing.assert_frame_equal(a, ke.cumulative_draws(directory, eligibility, [2001, 2002],
+                                                                 {2001: 1.0, 2002: 1.0}, **settings))
+            b = ke.cumulative_draws(directory, eligibility, [2001, 2002], {2001: 1.0, 2002: 9.0}, **settings)
+            self.assertGreater(b.query("year == 2002")["newest_share"].mean(), a.query("year == 2002")["newest_share"].mean())
+
+    def test_bad_weights_and_oversized_draws_are_errors(self):
+        with TemporaryDirectory() as directory:
+            eligibility = fake_embeddings(directory)
+            with self.assertRaisesRegex(RuntimeError, "weights"):
+                ke.cumulative_draws(directory, eligibility, [2001, 2002], {2001: 1.0}, n_draws=5, size=20)
+            with self.assertRaisesRegex(RuntimeError, "more papers"):
+                ke.cumulative_draws(directory, eligibility, [2001], {2001: 1.0}, n_draws=5, size=60)
+
+
 class GrowthTests(unittest.TestCase):
     def test_elasticity_recovers_a_power_law(self):
         years = np.arange(2001, 2025)
